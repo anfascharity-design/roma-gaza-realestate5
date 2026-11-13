@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>عقارات روما غزة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Cairo', 'sans-serif'] },
+          colors: {
+            navy: {
+              950: '#060d1a',
+              900: '#0a1628',
+              800: '#112240',
+              700: '#1d3557',
+            },
+            gold: {
+              400: '#f5d061',
+              500: '#d4af37',
+              600: '#b59224',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #040812;
+      font-family: 'Cairo', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    /* إطار الهاتف العمودي */
+    .mobile-shell {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      background-color: #0a1628;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
+      border-left: 1px solid rgba(212, 175, 55, 0.15);
+      border-right: 1px solid rgba(212, 175, 55, 0.15);
+      overflow-x: hidden;
+    }
+    /* إخفاء شريط التمرير مع إبقاء التمرير سلساً */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="text-white antialiased selection:bg-gold-500 selection:text-navy-900">
+
+  <div class="mobile-shell">
+
+    <!-- شاشة انقطاع الإنترنت -->
+    <div id="offline-screen" class="hidden fixed inset-0 z-50 bg-navy-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center max-w-[430px] mx-auto">
+      <div class="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-5">
+        <i class="fa-solid fa-wifi text-3xl text-red-400"></i>
+      </div>
+      <h2 class="text-xl font-bold text-white mb-2">لا يوجد اتصال بالإنترنت</h2>
+      <p class="text-gray-400 text-sm mb-6 leading-relaxed">يرجى التحقق من اتصال الشبكة لعرض أحدث العقارات المتاحة في غزة.</p>
+      <button onclick="window.location.reload()" class="px-6 py-2.5 bg-gold-500 text-navy-900 font-bold rounded-xl shadow-lg active:scale-95 transition">
+        إعادة المحاولة
+      </button>
+    </div>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-screen" class="flex-1 flex flex-col justify-between p-7 bg-gradient-to-b from-navy-900 via-navy-900 to-navy-950">
+      <div class="pt-10 text-center">
+        <div class="w-24 h-24 mx-auto mb-5 rounded-3xl bg-gradient-to-br from-gold-400 to-gold-600 p-0.5 shadow-xl shadow-gold-500/20">
+          <div class="w-full h-full bg-navy-900 rounded-[22px] flex items-center justify-center">
+            <i class="fa-solid fa-building-columns text-4xl text-gold-500"></i>
+          </div>
+        </div>
+        <h1 class="text-2xl font-extrabold text-white tracking-wide">عقارات روما غزة</h1>
+        <p class="text-gold-400 text-sm mt-1 font-semibold">وجهتك الأولى للعقارات الموثوقة في قطاع غزة</p>
+      </div>
+
+      <div class="bg-navy-800/70 border border-gold-500/20 rounded-3xl p-6 text-center backdrop-blur-sm my-6">
+        <h2 class="text-lg font-bold text-white mb-2">مرحباً بك</h2>
+        <p class="text-gray-300 text-xs leading-relaxed mb-6">
+          سجّل الدخول بحساب جوجل لتصفح الشقق، الأراضي، والمحلات التجارية المتاحة والتواصل المباشر مع المكتب.
+        </p>
+
+        <button id="google-login-btn" class="w-full py-3.5 px-4 bg-white hover:bg-gray-100 text-navy-900 font-bold rounded-2xl flex items-center justify-center gap-3 shadow-lg active:scale-95 transition">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5" />
+          <span>تسجيل الدخول باستخدام Google</span>
+        </button>
+
+        <p id="login-error" class="text-red-400 text-xs mt-3 hidden"></p>
+      </div>
+
+      <div class="text-center pb-4">
+        <p class="text-[11px] text-gray-500">جميع الحقوق محفوظة &copy; عقارات روما غزة</p>
+      </div>
+    </div>
+
+    <!-- واجهة التطبيق الرئيسية (تظهر بعد تسجيل الدخول) -->
+    <div id="app-screen" class="hidden flex-1 flex flex-col pb-20">
+
+      <!-- الشريط العلوي -->
+      <header class="sticky top-0 z-30 bg-navy-900/95 backdrop-blur-md border-b border-gold-500/20 px-4 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-gold-500/15 border border-gold-500/40 flex items-center justify-center text-gold-500">
+            <i class="fa-solid fa-building-columns text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-extrabold text-white leading-tight">عقارات روما غزة</h1>
+            <p id="user-greeting" class="text-[11px] text-gold-400 font-medium">أهلاً بك</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <img id="user-avatar" src="" alt="User" class="w-8 h-8 rounded-full border border-gold-500/50 object-cover hidden" />
+          <button id="logout-btn" title="تسجيل الخروج" class="w-9 h-9 rounded-xl bg-navy-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 border border-white/10 flex items-center justify-center transition">
+            <i class="fa-solid fa-right-from-bracket text-sm"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- شريط البحث والتصنيف -->
+      <div class="p-4 space-y-3 bg-navy-950/40 border-b border-white/5">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <input id="search-input" type="text" placeholder="ابحث بالمنطقة (الرمال، تل الهوا، خانيونس...)" class="w-full bg-navy-800/90 border border-white/10 focus:border-gold-500 rounded-2xl py-2.5 pr-10 pl-4 text-sm text-white placeholder-gray-400 outline-none transition" />
+        </div>
+
+        <!-- أزرار الفلترة الأفقية -->
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" id="filter-tabs">
+          <button data-filter="الكل" class="filter-btn active px-4 py-1.5 rounded-full text-xs font-bold bg-gold-500 text-navy-900 whitespace-nowrap transition">الكل</button>
+          <button data-filter="شقة" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-navy-800 text-gray-300 border border-white/10 whitespace-nowrap transition">شقق</button>
+          <button data-filter="أرض" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-navy-800 text-gray-300 border border-white/10 whitespace-nowrap transition">أراضي</button>
+          <button data-filter="محل" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-navy-800 text-gray-300 border border-white/10 whitespace-nowrap transition">محلات</button>
+          <button data-filter="إيجار" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-navy-800 text-gray-300 border border-white/10 whitespace-nowrap transition">للإيجار</button>
+          <button data-filter="بيع" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-navy-800 text-gray-300 border border-white/10 whitespace-nowrap transition">للبيع</button>
+        </div>
+      </div>
+
+      <!-- قائمة العقارات -->
+      <main id="properties-container" class="p-4 space-y-4 flex-1">
+        <!-- حالة التحميل -->
+        <div id="loading-state" class="py-16 text-center">
+          <i class="fa-solid fa-circle-notch fa-spin text-3xl text-gold-500 mb-3"></i>
+          <p class="text-sm text-gray-400">جاري تحميل أحدث العقارات...</p>
+        </div>
+      </main>
+
+      <!-- شريط سفلي للتواصل السريع مع المكتب -->
+      <div class="fixed bottom-0 w-full max-w-[430px] bg-navy-900/95 backdrop-blur-md border-t border-gold-500/25 px-4 py-2.5 flex items-center justify-between gap-2 z-30">
+        <a href="tel:0595925737" class="flex-1 py-2.5 bg-navy-800 hover:bg-navy-700 border border-gold-500/30 text-gold-400 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition">
+          <i class="fa-solid fa-phone"></i>
+          <span>اتصال بالمكتب</span>
+        </a>
+        <a href="https://wa.me/972595925737?text=السلام%20عليكم%20مكتب%20عقارات%20روما%20غزة،%20أرغب%20بالاستفسار%20عن%20العقارات%20المتاحة" target="_blank" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition">
+          <i class="fa-brands fa-whatsapp text-base"></i>
+          <span>واتساب المكتب</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- نافذة تفاصيل العقار (Modal عمودي) -->
+    <div id="details-modal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-end justify-center max-w-[430px] mx-auto">
+      <div class="bg-navy-900 w-full max-h-[90vh] rounded-t-3xl border-t border-gold-500/30 flex flex-col overflow-hidden animate-slide-up">
+        <div class="relative h-60 bg-navy-800">
+          <img id="modal-img" src="" alt="صورة العقار" class="w-full h-full object-cover" />
+          <button id="close-modal-btn" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-navy-950/80 text-white flex items-center justify-center border border-white/15">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          <span id="modal-badge" class="absolute bottom-3 right-3 px-3 py-1 rounded-lg bg-gold-500 text-navy-900 text-xs font-extrabold shadow"></span>
+        </div>
+
+        <div class="p-5 overflow-y-auto space-y-4">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 id="modal-title" class="text-lg font-extrabold text-white"></h3>
+              <p id="modal-location" class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                <i class="fa-solid fa-location-dot text-gold-500"></i>
+                <span></span>
+              </p>
+            </div>
+            <div class="text-left">
+              <span id="modal-price" class="text-lg font-extrabold text-gold-400 block"></span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 bg-navy-800/70 p-3 rounded-2xl border border-white/5 text-center">
+            <div>
+              <span class="text-[11px] text-gray-400 block">النوع</span>
+              <span id="modal-type" class="text-xs font-bold text-white"></span>
+            </div>
+            <div class="border-x border-white/10">
+              <span class="text-[11px] text-gray-400 block">المساحة</span>
+              <span id="modal-area" class="text-xs font-bold text-white"></span>
+            </div>
+            <div>
+              <span class="text-[11px] text-gray-400 block">الغرف/الطابق</span>
+              <span id="modal-rooms" class="text-xs font-bold text-white"></span>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-gold-400 mb-1.5">تفاصيل العقار:</h4>
+            <p id="modal-desc" class="text-xs text-gray-300 leading-relaxed whitespace-pre-line"></p>
+          </div>
+
+          <!-- التنويه الثابت -->
+          <div class="bg-gold-500/10 border border-gold-500/30 rounded-xl p-3 flex items-center gap-2.5">
+            <i class="fa-solid fa-circle-info text-gold-500 text-sm"></i>
+            <p class="text-xs font-bold text-gold-400">مع العلم يوجد هناك عمولة للمكتب</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-2 pb-4">
+            <a href="tel:0595925737" class="py-3 bg-navy-800 border border-gold-500/40 text-gold-400 font-bold text-xs rounded-xl flex items-center justify-center gap-2">
+              <i class="fa-solid fa-phone"></i>
+              <span>اتصال: 0595925737</span>
+            </a>
+            <a id="modal-whatsapp-btn" href="#" target="_blank" class="py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg">
+              <i class="fa-brands fa-whatsapp text-base"></i>
+              <span>استفسار واتساب</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // إعدادات مشروعك الحقيقية على Firebase
+    const firebaseConfig = {
+  apiKey: "AIzaSyAouBhzITvsjMH3mSCDhJRIy0ww8dB3SR0",
+  authDomain: "roma-gaza.firebaseapp.com",
+  projectId: "roma-gaza",
+  storageBucket: "roma-gaza.firebasestorage.app",
+  messagingSenderId: "1073475220758",
+  appId: "1:1073475220758:web:f617fe38f25c17e75f8c37",
+  measurementId: "G-BKDB9C2W95"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // عناصر الواجهة
+    const loginScreen = document.getElementById('login-screen');
+    const appScreen = document.getElementById('app-screen');
+    const offlineScreen = document.getElementById('offline-screen');
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const loginError = document.getElementById('login-error');
+    const propertiesContainer = document.getElementById('properties-container');
+    const searchInput = document.getElementById('search-input');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    let allProperties = [];
+    let currentFilter = 'الكل';
+
+    // مراقبة حالة الإنترنت
+    function updateOnlineStatus() {
+      if (!navigator.onLine) {
+        offlineScreen.classList.remove('hidden');
+      } else {
+        offlineScreen.classList.add('hidden');
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // تسجيل الدخول بجوجل
+    googleLoginBtn.addEventListener('click', async () => {
+      loginError.classList.add('hidden');
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error(error);
+        loginError.textContent = "تعذر تسجيل الدخول: تأكد من تشغيل التطبيق عبر خادم محلي (Live Server) أو استضافة وليس كملف مباشر.";
+        loginError.classList.remove('hidden');
+      }
+    });
+
+    // تسجيل الخروج
+    logoutBtn.addEventListener('click', () => signOut(auth));
+
+    // مراقبة حالة المستخدم
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loginScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        document.getElementById('user-greeting').textContent = `أهلاً، ${user.displayName ? user.displayName.split(' ')[0] : 'بك'}`;
+        if (user.photoURL) {
+          const avatar = document.getElementById('user-avatar');
+          avatar.src = user.photoURL;
+          avatar.classList.remove('hidden');
+        }
+        listenToProperties();
+      } else {
+        appScreen.classList.add('hidden');
+        loginScreen.classList.remove('hidden');
+      }
+    });
+
+    // جلب العقارات لحظياً من Firestore
+    function listenToProperties() {
+      const q = query(collection(db, "properties"), orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        allProperties = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // إظهار العقارات المتاحة فقط وإخفاء البيانات السرية (المالك والعمولة)
+          if (data.status !== 'مباع' && data.status !== 'مؤجر') {
+            allProperties.push({
+              id: doc.id,
+              title: data.title || 'عقار مميز',
+              type: data.type || 'شقة',
+              offerType: data.offerType || 'بيع',
+              location: data.location || 'غزة',
+              price: data.price || 'تواصل للسعر',
+              area: data.area || '-',
+              rooms: data.rooms || '-',
+              description: data.description || 'لا توجد تفاصيل إضافية.',
+              imageUrl: data.imageUrl || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80'
+            });
+          }
+        });
+        renderProperties();
+      }, (error) => {
+        propertiesContainer.innerHTML = `
+          <div class="text-center py-12 bg-navy-800/40 rounded-2xl p-4 border border-white/5">
+            <i class="fa-solid fa-database text-2xl text-gold-500 mb-2"></i>
+            <p class="text-xs text-gray-300">بانتظار تفعيل قاعدة البيانات Firestore أو إضافة أول عقار من لوحة الوسيط.</p>
+          </div>
+        `;
+      });
+    }
+
+    // عرض البطاقات
+    function renderProperties() {
+      const term = searchInput.value.trim().toLowerCase();
+      const filtered = allProperties.filter(p => {
+        const matchesSearch = p.title.toLowerCase().includes(term) || p.location.toLowerCase().includes(term);
+        const matchesFilter = currentFilter === 'الكل' || p.type === currentFilter || p.offerType === currentFilter;
+        return matchesSearch && matchesFilter;
+      });
+
+      if (filtered.length === 0) {
+        propertiesContainer.innerHTML = `
+          <div class="text-center py-14">
+            <i class="fa-solid fa-house-circle-xmark text-3xl text-gray-500 mb-3"></i>
+            <p class="text-sm text-gray-400">لا توجد عقارات مطابقة حالياً</p>
+          </div>
+        `;
+        return;
+      }
+
+      propertiesContainer.innerHTML = filtered.map(prop => {
+        const waMsg = encodeURIComponent(`السلام عليكم عقارات روما غزة، أستفسر عن العقار: ${prop.title} (${prop.location}) بسعر ${prop.price}`);
+        return `
+          <article class="bg-navy-800/80 border border-white/10 rounded-3xl overflow-hidden shadow-lg transition hover:border-gold-500/40">
+            <div class="relative h-48 bg-navy-950 cursor-pointer" onclick="openDetails('${prop.id}')">
+              <img src="${prop.imageUrl}" alt="${prop.title}" class="w-full h-full object-cover" loading="lazy" />
+              <div class="absolute top-3 right-3 flex gap-1.5">
+                <span class="px-2.5 py-1 rounded-lg bg-navy-900/90 text-gold-400 text-[11px] font-bold border border-gold-500/30">${prop.type}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-gold-500 text-navy-900 text-[11px] font-extrabold">${prop.offerType}</span>
+              </div>
+              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-navy-950 via-navy-950/70 to-transparent p-3 pt-8 flex items-end justify-between">
+                <span class="text-base font-extrabold text-gold-400">${prop.price}</span>
+                <span class="text-[11px] text-gray-200 bg-white/10 px-2 py-0.5 rounded-md">${prop.area} م²</span>
+              </div>
+            </div>
+
+            <div class="p-4 space-y-3">
+              <div onclick="openDetails('${prop.id}')" class="cursor-pointer">
+                <h3 class="font-bold text-white text-base line-clamp-1">${prop.title}</h3>
+                <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                  <i class="fa-solid fa-location-dot text-gold-500"></i>
+                  <span>${prop.location}</span>
+                </p>
+              </div>
+
+              <!-- التنويه الثابت في كل عقار -->
+              <div class="bg-gold-500/10 border border-gold-500/25 rounded-xl px-3 py-1.5 text-[11px] font-bold text-gold-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>مع العلم يوجد هناك عمولة للمكتب</span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 pt-1">
+                <button onclick="openDetails('${prop.id}')" class="py-2 bg-navy-700 hover:bg-navy-600 text-white text-xs font-bold rounded-xl transition">
+                  التفاصيل
+                </button>
+                <a href="tel:0595925737" class="py-2 bg-navy-900 border border-gold-500/30 text-gold-400 text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition">
+                  <i class="fa-solid fa-phone text-[11px]"></i>
+                  <span>اتصال</span>
+                </a>
+                <a href="https://wa.me/972595925737?text=${waMsg}" target="_blank" class="py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1 transition">
+                  <i class="fa-brands fa-whatsapp text-sm"></i>
+                  <span>واتساب</span>
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // البحث والفلترة
+    searchInput.addEventListener('input', renderProperties);
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => {
+          b.classList.remove('bg-gold-500', 'text-navy-900');
+          b.classList.add('bg-navy-800', 'text-gray-300', 'border', 'border-white/10');
+        });
+        btn.classList.remove('bg-navy-800', 'text-gray-300', 'border', 'border-white/10');
+        btn.classList.add('bg-gold-500', 'text-navy-900');
+        currentFilter = btn.dataset.filter;
+        renderProperties();
+      });
+    });
+
+    // نافذة التفاصيل
+    const modal = document.getElementById('details-modal');
+    window.openDetails = (id) => {
+      const prop = allProperties.find(p => p.id === id);
+      if (!prop) return;
+      document.getElementById('modal-img').src = prop.imageUrl;
+      document.getElementById('modal-badge').textContent = `${prop.type} - ${prop.offerType}`;
+      document.getElementById('modal-title').textContent = prop.title;
+      document.getElementById('modal-location').querySelector('span').textContent = prop.location;
+      document.getElementById('modal-price').textContent = prop.price;
+      document.getElementById('modal-type').textContent = prop.type;
+      document.getElementById('modal-area').textContent = `${prop.area} م²`;
+      document.getElementById('modal-rooms').textContent = prop.rooms;
+      document.getElementById('modal-desc').textContent = prop.description;
+      const waMsg = encodeURIComponent(`السلام عليكم عقارات روما غزة، أرغب بمعاينة/الاستفسار عن: ${prop.title} (${prop.location}) بسعر ${prop.price}`);
+      document.getElementById('modal-whatsapp-btn').href = `https://wa.me/972595925737?text=${waMsg}`;
+      modal.classList.remove('hidden');
+    };
+
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>
